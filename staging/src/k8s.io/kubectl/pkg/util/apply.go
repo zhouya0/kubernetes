@@ -17,8 +17,10 @@ limitations under the License.
 package util
 
 import (
+	"fmt"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -90,6 +92,13 @@ func GetModifiedConfiguration(obj runtime.Object, annotate bool, codec runtime.E
 		return nil, err
 	}
 
+	metadata, _ := meta.Accessor(obj)
+	originTimestamp := metadata.GetDeletionTimestamp()
+	if originTimestamp == nil {
+		fmt.Println("now is nil")
+	}
+	metadata.SetDeletionTimestamp(&metav1.Time{})
+
 	modified, err = runtime.Encode(codec, obj)
 	if err != nil {
 		return nil, err
@@ -113,6 +122,7 @@ func GetModifiedConfiguration(obj runtime.Object, annotate bool, codec runtime.E
 		return nil, err
 	}
 
+	metadata.SetDeletionTimestamp(nil)
 	return modified, nil
 }
 
